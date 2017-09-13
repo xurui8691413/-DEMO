@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<context:component-scan base-package="com.seckill.log" />
+	<!-- For times when you just need to invoke a method on a specific object -->
+	<!-- <bean id="simpleJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean"> 
+		<property name="targetObject" ref="myBean" /> <property name="targetMethod" 
+		value="printMessage" /> </bean> -->
+	<!-- For times when you need more complex processing, passing data to the 
+		scheduled job -->
+	<bean name="complexJobDetail"
+		class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+		<property name="jobClass" value="com.seckill.log.ScheduledJob" />
+		<property name="jobDataMap">
+			<map>
+				<entry key="logWriterService" value-ref="logWriterService" />
+			</map>
+		</property>
+		<property name="durability" value="true" />
+	</bean>
+
+	<bean id="cronTrigger"
+		class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="complexJobDetail" />
+		<property name="cronExpression" value="0/2 * * * * ? *" />
+	</bean>
+
+	<!-- Scheduler factory bean to glue together jobDetails and triggers to 
+		Configure Quartz Scheduler -->
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="jobDetails">
+			<list>
+				<!-- <ref bean="simpleJobDetail" /> -->
+				<ref bean="complexJobDetail" />
+			</list>
+		</property>
+
+		<property name="triggers">
+			<list>
+				<!-- <ref bean="simpleTrigger" /> -->
+				<ref bean="cronTrigger" />
+			</list>
+		</property>
+	</bean>
+	
+	
+	<bean id="logWriterService" class="com.seckill.log.LogWriterServiceImpl"></bean> 
+</beans>

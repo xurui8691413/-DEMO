@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+    <!-- 1:config about database -->
+  <!--   <context:property-placeholder location="classpath:jdbc.properties"/> -->
+    <!--<context:property-placeholder location="classpath:redis.properties"/>-->
+    <!-- 2:config database pool -->
+     <context:component-scan base-package="com.seckill.cache"/>
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${jdbc.driverClassName}"/>
+        <property name="jdbcUrl" value="${jdbc.url}"/>
+        <property name="user" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+
+        <!-- c3p0 database pool private config -->
+        <property name="maxPoolSize" value="30"/>
+        <property name="minPoolSize" value="3"/>
+        <!-- don't commit when close the connection -->
+        <property name="autoCommitOnClose" value="false"/>
+        <!-- get connection timeout -->
+        <property name="checkoutTimeout" value="10000"/>
+        <!-- get connection retry times -->
+        <property name="acquireIncrement" value="2"/>
+        <property name="maxStatements" value="0"/>
+    </bean>
+    <!-- 3:config sqlSessionFactory -->
+    <bean id="sqlSessiongFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- inject database pool -->
+        <property name="dataSource" ref="dataSource"/>
+        <!-- config Mybatis configuration -->
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <!-- scan entity and use alias:com.netease.seckill.entity.Seckill->Seckill  -->
+        <property name="typeAliasesPackage" value="com.seckill.entity"/>
+        <!-- scan sql configuration -->
+        <property name="mapperLocations" value="classpath:mapper/*.xml"/>
+    </bean>
+    <!-- 4:config scan DAO interface,dynamatic implements dao interface,and inject to spring container -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- inject sqlSessionFactory -->
+        <property name="sqlSessionFactoryBeanName" value="sqlSessiongFactory"/>
+        <!-- scan DAO interface -->
+        <property name="basePackage" value="com.seckill.dao"/>
+    </bean>
+
+    <!--<bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">-->
+        <!--<property name="maxIdle" value="${redis.maxIdle}" />-->
+        <!--<property name="maxTotal" value="${redis.maxTotal}" />-->
+        <!--<property name="maxWaitMillis" value="${redis.maxWaitMillis}" />-->
+        <!--<property name="testOnBorrow" value="${redis.testOnBorrow}" />-->
+        <!--<property name="testOnReturn" value="${redis.testOnReturn}" />-->
+    <!--</bean>-->
+    <!-- redis dao -->
+  <!--   <bean name="redisDao" class="com.seckill.cache.RedisDao">
+        <constructor-arg index="0" value="localhost"/>
+        <constructor-arg index="1" value="6379"/>
+    </bean>  -->
+
+
+</beans>
